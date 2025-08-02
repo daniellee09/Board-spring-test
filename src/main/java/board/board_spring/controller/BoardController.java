@@ -42,7 +42,7 @@ public class BoardController {
 
     // 글 삭제
     @DeleteMapping("/{boardId}")
-    public ResponseEntity deleteBoard(@PathVariable("boardId")Long boardId) {
+    public  ResponseEntity deleteBoard(@PathVariable("boardId")Long boardId) {
         boardService.deleteBoard(boardId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
