@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 작성</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>게시글 작성</h1>
+            <button class="btn" onclick="location.href='/boards'">목록으로</button>
+        </header>
+
+        <form id="boardForm" class="board-form">
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title" required maxlength="100" 
+                       placeholder="제목을 입력하세요 (최대 100자)">
+                <div class="error-message" id="titleError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" name="content" required maxlength="8000" 
+                          placeholder="내용을 입력하세요 (최대 8000자)" rows="10"></textarea>
+                <div class="error-message" id="contentError"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn" onclick="location.href='/boards'">취소</button>
+                <button type="submit" class="btn btn-primary">작성</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#boardForm').submit(function(e) {
+                e.preventDefault();
+                submitBoard();
+            });
+
+            // 실시간 글자 수 체크
+            $('#title').on('input', function() {
+                const length = $(this).val().length;
+                if (length > 100) {
+                    $('#titleError').text('제목은 100자를 초과할 수 없습니다.');
+                } else {
+                    $('#titleError').text('');
+                }
+            });
+
+            $('#content').on('input', function() {
+                const length = $(this).val().length;
+                if (length > 8000) {
+                    $('#contentError').text('내용은 8000자를 초과할 수 없습니다.');
+                } else {
+                    $('#contentError').text('');
+                }
+            });
+        });
+
+        function submitBoard() {
+            // 에러 메시지 초기화
+            $('.error-message').text('');
+
+            const title = $('#title').val().trim();
+            const content = $('#content').val().trim();
+
+            // 클라이언트 사이드 검증
+            if (!title) {
+                $('#titleError').text('제목을 입력해주세요.');
+                $('#title').focus();
+                return;
+            }
+
+            if (!content) {
+                $('#contentError').text('내용을 입력해주세요.');
+                $('#content').focus();
+                return;
+            }
+
+            if (title.length > 100) {
+                $('#titleError').text('제목은 100자를 초과할 수 없습니다.');
+                $('#title').focus();
+                return;
+            }
+
+            if (content.length > 8000) {
+                $('#contentError').text('내용은 8000자를 초과할 수 없습니다.');
+                $('#content').focus();
+                return;
+            }
+
+            // AJAX로 게시글 작성
+            const boardData = {
+                title: title,
+                content: content
+            };
+
+            $.ajax({
+                url: '/api/boards',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(boardData),
+                success: function(boardId) {
+                    alert('게시글이 작성되었습니다.');
+                    location.href = `/boards/${boardId}`;
+                },
+                error: function(xhr) {
+                    if (xhr.status === 400) {
+                        // 서버 사이드 검증 오류 처리
+                        const errors = xhr.responseJSON;
+                        if (errors) {
+                            displayServerErrors(errors);
+                        } else {
+                            alert('입력한 내용을 확인해주세요.');
+                        }
+                    } else {
+                        alert('게시글 작성에 실패했습니다.');
+                    }
+                }
+            });
+        }
+
+        // 서버 검증 오류 표시
+        function displayServerErrors(errors) {
+            if (errors.title) {
+                $('#titleError').text(errors.title);
+            }
+            if (errors.content) {
+                $('#contentError').text(errors.content);
+            }
+        }
+    </script>
+</body>
+</html>
