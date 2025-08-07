@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 상세</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>게시글 상세</h1>
+            <div class="header-buttons">
+                <button class="btn" onclick="location.href='/boards'">목록으로</button>
+                <button class="btn btn-primary" id="editBtn">수정</button>
+                <button class="btn btn-danger" id="deleteBtn">삭제</button>
+            </div>
+        </header>
+
+        <div class="board-detail" id="boardDetail">
+            <!-- JavaScript로 동적 로딩 -->
+            <div class="loading">게시글을 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const boardId = /*[[${boardId}]]*/ null;
+
+        $(document).ready(function() {
+            loadBoardDetail();
+            
+            $('#editBtn').click(function() {
+                location.href = `/boards/${boardId}/edit`;
+            });
+            
+            $('#deleteBtn').click(function() {
+                deleteBoard();
+            });
+        });
+
+        // 게시글 상세 정보 로딩
+        function loadBoardDetail() {
+            $.get(`/api/boards/${boardId}`)
+                .done(function(board) {
+                    displayBoardDetail(board);
+                })
+                .fail(function() {
+                    $('#boardDetail').html('<div class="error">게시글을 찾을 수 없습니다.</div>');
+                });
+        }
+
+        // 게시글 상세 정보 표시
+        function displayBoardDetail(board) {
+            const detailHtml = `
+                <div class="board-header">
+                    <div class="board-meta">
+                        <span class="board-id">번호: ${board.boardId}</span>
+                    </div>
+                    <h2 class="board-title">${escapeHtml(board.title)}</h2>
+                </div>
+                <div class="board-content">
+                    <div class="content-text">${escapeHtml(board.content).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+            $('#boardDetail').html(detailHtml);
+        }
+
+        // HTML 이스케이프 처리
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 게시글 삭제
+        function deleteBoard() {
+            if (confirm('정말로 삭제하시겠습니까?')) {
+                $.ajax({
+                    url: `/api/boards/${boardId}`,
+                    method: 'DELETE',
+                    success: function() {
+                        alert('삭제되었습니다.');
+                        location.href = '/boards';
+                    },
+                    error: function() {
+                        alert('삭제에 실패했습니다.');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

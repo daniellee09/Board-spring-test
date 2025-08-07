@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 수정</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>게시글 수정</h1>
+            <button class="btn" onclick="goBack()">뒤로가기</button>
+        </header>
+
+        <form id="boardForm" class="board-form">
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title" required maxlength="100" 
+                       placeholder="제목을 입력하세요 (최대 100자)">
+                <div class="error-message" id="titleError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" name="content" required maxlength="8000" 
+                          placeholder="내용을 입력하세요 (최대 8000자)" rows="10"></textarea>
+                <div class="error-message" id="contentError"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn" onclick="goBack()">취소</button>
+                <button type="submit" class="btn btn-primary">수정</button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">게시글을 불러오는 중...</div>
+    </div>
+
+    <script th:inline="javascript">
+        const boardId = /*[[${boardId}]]*/ null;
+        let originalBoard = null;
+
+        $(document).ready(function() {
+            loadBoardForEdit();
+
+            $('#boardForm').submit(function(e) {
+                e.preventDefault();
+                submitBoard();
+            });
+
+            // 실시간 글자 수 체크
+            $('#title').on('input', function() {
+                const length = $(this).val().length;
+                if (length > 100) {
+                    $('#titleError').text('제목은 100자를 초과할 수 없습니다.');
+                } else {
+                    $('#titleError').text('');
+                }
+            });
+
+            $('#content').on('input', function() {
+                const length = $(this).val().length;
+                if (length > 8000) {
+                    $('#contentError').text('내용은 8000자를 초과할 수 없습니다.');
+                } else {
+                    $('#contentError').text('');
+                }
+            });
+        });
+
+        // 수정할 게시글 로딩
+        function loadBoardForEdit() {
+            $.get(`/api/boards/${boardId}`)
+                .done(function(board) {
+                    originalBoard = board;
+                    $('#title').val(board.title);
+                    $('#content').val(board.content);
+                    $('#loading').hide();
+                    $('#boardForm').show();
+                })
+                .fail(function() {
+                    alert('게시글을 찾을 수 없습니다.');
+                    location.href = '/boards';
+                });
+        }
+
+        function submitBoard() {
+            // 에러 메시지 초기화
+            $('.error-message').text('');
+
+            const title = $('#title').val().trim();
+            const content = $('#content').val().trim();
+
+            // 클라이언트 사이드 검증
+            if (!title) {
+                $('#titleError').text('제목을 입력해주세요.');
+                $('#title').focus();
+                return;
+            }
+
+            if (!content) {
+                $('#contentError').text('내용을 입력해주세요.');
+                $('#content').focus();
+                return;
+            }
+
+            if (title.length > 100) {
+                $('#titleError').text('제목은 100자를 초과할 수 없습니다.');
+                $('#title').focus();
+                return;
+            }
+
+            if (content.length > 8000) {
+                $('#contentError').text('내용은 8000자를 초과할 수 없습니다.');
+                $('#content').focus();
+                return;
+            }
+
+            // 변경사항 체크
+            if (originalBoard && title === originalBoard.title && content === originalBoard.content) {
+                alert('변경된 내용이 없습니다.');
+                return;
+            }
+
+            // AJAX로 게시글 수정
+            const boardData = {
+                title: title,
+                content: content
+            };
+
+            $.ajax({
+                url: `/api/boards/${boardId}`,
+                method: 'PATCH',
+                contentType: 'application/json',
+                data: JSON.stringify(boardData),
+                success: function(updatedBoard) {
+                    alert('게시글이 수정되었습니다.');
+                    location.href = `/boards/${boardId}`;
+                },
+                error: function(xhr) {
+                    if (xhr.status === 400) {
+                        // 서버 사이드 검증 오류 처리
+                        const errors = xhr.responseJSON;
+                        if (errors) {
+                            displayServerErrors(errors);
+                        } else {
+                            alert('입력한 내용을 확인해주세요.');
+                        }
+                    } else {
+                        alert('게시글 수정에 실패했습니다.');
+                    }
+                }
+            });
+        }
+
+        // 서버 검증 오류 표시
+        function displayServerErrors(errors) {
+            if (errors.title) {
+                $('#titleError').text(errors.title);
+            }
+            if (errors.content) {
+                $('#contentError').text(errors.content);
+            }
+        }
+
+        function goBack() {
+            location.href = `/boards/${boardId}`;
+        }
+    </script>
+
+    <style>
+        #boardForm {
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</body>
+</html>

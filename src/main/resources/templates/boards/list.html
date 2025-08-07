@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>게시판</h1>
+            <button class="btn btn-primary" onclick="location.href='/boards/create'">글 작성</button>
+        </header>
+
+        <div class="board-list">
+            <table id="boardTable">
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>제목</th>
+                        <th>내용</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JavaScript로 동적 로딩 -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button id="prevBtn" class="btn">이전</button>
+            <span id="pageInfo">1 페이지</span>
+            <button id="nextBtn" class="btn">다음</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 5;
+
+        // 페이지 로드 시 게시글 목록 로딩
+        $(document).ready(function() {
+            loadBoards(currentPage);
+            
+            $('#prevBtn').click(function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadBoards(currentPage);
+                }
+            });
+            
+            $('#nextBtn').click(function() {
+                currentPage++;
+                loadBoards(currentPage);
+            });
+        });
+
+        // 게시글 목록 로딩 함수
+        function loadBoards(page) {
+            $.get('/api/boards', { page: page, size: pageSize })
+                .done(function(data) {
+                    displayBoards(data.content);
+                    updatePagination(data);
+                })
+                .fail(function() {
+                    alert('게시글을 불러오는데 실패했습니다.');
+                });
+        }
+
+        // 게시글 목록 표시
+        function displayBoards(boards) {
+            const tbody = $('#boardTable tbody');
+            tbody.empty();
+            
+            if (boards.length === 0) {
+                tbody.append('<tr><td colspan="4" class="text-center">게시글이 없습니다.</td></tr>');
+                return;
+            }
+            
+            boards.forEach(function(board) {
+                const row = `
+                    <tr>
+                        <td>${board.boardId}</td>
+                        <td><a href="/boards/${board.boardId}" class="title-link">${board.title}</a></td>
+                        <td class="content-preview">${truncateText(board.content, 50)}</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="location.href='/boards/${board.boardId}/edit'">수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBoard(${board.boardId})">삭제</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        // 페이지네이션 업데이트
+        function updatePagination(pageData) {
+            $('#pageInfo').text(`${pageData.number + 1} 페이지 (총 ${pageData.totalPages}페이지)`);
+            $('#prevBtn').prop('disabled', pageData.first);
+            $('#nextBtn').prop('disabled', pageData.last);
+        }
+
+        // 텍스트 자르기 함수
+        function truncateText(text, maxLength) {
+            if (text.length > maxLength) {
+                return text.substring(0, maxLength) + '...';
+            }
+            return text;
+        }
+
+        // 게시글 삭제
+        function deleteBoard(boardId) {
+            if (confirm('정말로 삭제하시겠습니까?')) {
+                $.ajax({
+                    url: '/api/boards/' + boardId,
+                    method: 'DELETE',
+                    success: function() {
+                        alert('삭제되었습니다.');
+                        loadBoards(currentPage);
+                    },
+                    error: function() {
+                        alert('삭제에 실패했습니다.');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
