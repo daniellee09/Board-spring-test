@@ -4,20 +4,21 @@ import board.board_spring.dto.BoardPatchDto;
 import board.board_spring.dto.BoardPostDto;
 import board.board_spring.dto.BoardResponseDto;
 import board.board_spring.service.BoardService;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Getter
-@Setter
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor
 public class BoardController {

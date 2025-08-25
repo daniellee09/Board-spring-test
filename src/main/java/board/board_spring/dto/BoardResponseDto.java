@@ -14,7 +14,7 @@ public class BoardResponseDto {
     private String content;
 
     // 정적 팩토리 메서드 추가
-    public static BoardResponseDto FindFromBoard(Board board) {
+    public static BoardResponseDto findFromBoard(Board board) {
         return new BoardResponseDto(
                 board.getBoardId(),
                 board.getTitle(),

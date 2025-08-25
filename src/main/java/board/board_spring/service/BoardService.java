@@ -44,13 +44,13 @@ public class BoardService {
     // 게시글 상세 조회
     public BoardResponseDto findByBoardId(Long boardId) {
         Board board = findBoardId(boardId);
-        return BoardResponseDto.FindFromBoard(board);
+        return BoardResponseDto.findFromBoard(board);
     }
 
     // 전체 게시글 조회, Pagination
     public Page<BoardResponseDto> findAllBoards(Pageable pageable) {
         Page<Board> boards = boardRepository.findAll(pageable);
-        return boards.map(BoardResponseDto::FindFromBoard); // 변환기 느낌쓰
+        return boards.map(BoardResponseDto::findFromBoard); // 변환기 느낌쓰
         // boards의 내용을 BoardResponseDto의 FindFromBoard를 참조해서 변환해라
     }
 
