@@ -10,28 +10,29 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional // 스프링의 트랜잭션 관리 어노테이션, 작업 실패할 경우 롤백해줌
 public class BoardService {
     private final BoardRepository boardRepository;
 
     // Create
     public Long createBoard(BoardPostDto boardPostDto) {
-        Board board = new Board();
-        board.setTitle(boardPostDto.getTitle());
-        board.setContent(boardPostDto.getContent());
+
+        Board board = Board.postFrom(boardPostDto);
 
         return boardRepository.save(board).getBoardId();
     }
 
     // Update
-    public Long updateBoard(BoardPatchDto boardPatchDto, Long boardId) {
+    public BoardResponseDto updateBoard(Long boardId, BoardPatchDto boardPatchDto) {
         Board board = findBoardId(boardId);
-        board.setTitle(boardPatchDto.getTitle());
-        board.setContent(boardPatchDto.getContent());
+        board.updateFrom(boardPatchDto); // 이러면 Entity가 업데이트 처리
 
-        return boardRepository.save(board).getBoardId();
+        // Transactional로 자동 저장된다고 하네..save 따로 처리 필요 없음
+        return BoardResponseDto.findFromBoard(board); // 전체 정보 반환
     }
 
     // Delete

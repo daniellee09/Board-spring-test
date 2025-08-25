@@ -4,16 +4,11 @@ import board.board_spring.dto.BoardPatchDto;
 import board.board_spring.dto.BoardPostDto;
 import board.board_spring.dto.BoardResponseDto;
 import board.board_spring.service.BoardService;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,39 +22,36 @@ public class BoardController {
 
     // 글 작성
     @PostMapping
-    public ResponseEntity<Long> postBoard(@RequestBody @Validated BoardPostDto boardPostDto) {
-        Long boardId = boardService.createBoard(boardPostDto);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(boardId);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long postBoard(@RequestBody @Validated BoardPostDto boardPostDto) {
+        return boardService.createBoard(boardPostDto); // 직접 반환
     }
 
     // 글 수정
     @PatchMapping("/{boardId}")
-    public ResponseEntity<Long> patchBoard(@PathVariable("boardId")Long boardId,
+    public BoardResponseDto patchBoard(@PathVariable("boardId")Long boardId,
                                            @RequestBody @Validated BoardPatchDto boardPatchDto) {
-        boardService.updateBoard(boardPatchDto, boardId);
-        return ResponseEntity.status(HttpStatus.OK).body(boardId);
+
+        return boardService.updateBoard(boardId, boardPatchDto); // 업데이트된 리소스 반환
     }
 
     // 글 삭제
     @DeleteMapping("/{boardId}")
-    public ResponseEntity deleteBoard(@PathVariable("boardId")Long boardId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteBoard(@PathVariable("boardId")Long boardId) {
         boardService.deleteBoard(boardId);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     // 상세 조회
     @GetMapping("/{boardId}")
-    public ResponseEntity getBoard(@PathVariable("boardId")Long boardId) {
-        BoardResponseDto boardResponseDto = boardService.findByBoardId(boardId);
+    public BoardResponseDto getBoard(@PathVariable("boardId")Long boardId) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(boardResponseDto);
+        return boardService.findByBoardId(boardId);
     }
 
     // 전체 조회
     @GetMapping
-    public ResponseEntity<Page<BoardResponseDto>> getAllBoards(
+    public Page<BoardResponseDto> getAllBoards(
             // 클라이언트 요청 값을 우리가 사용하도록 변환
             // 몇 페이지인지
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -67,9 +59,8 @@ public class BoardController {
             @RequestParam(value = "size", defaultValue = "5") int size) {
 
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<BoardResponseDto> boards = boardService.findAllBoards(pageable);
 
-        return ResponseEntity.status(HttpStatus.OK).body(boards);
+        return boardService.findAllBoards(pageable);
     }
 
 
