@@ -56,6 +56,10 @@
                 <div class="board-header">
                     <div class="board-meta">
                         <span class="board-id">번호: ${board.boardId}</span>
+                        <span class="board-dates">
+                            <span class="created-date">작성일: ${formatDateTime(board.createdAt)}</span>
+                            ${board.updatedAt ? `<span class="updated-date">수정일: ${formatDateTime(board.updatedAt)}</span>` : ''}
+                        </span>
                     </div>
                     <h2 class="board-title">${escapeHtml(board.title)}</h2>
                 </div>
@@ -64,6 +68,20 @@
                 </div>
             `;
             $('#boardDetail').html(detailHtml);
+        }
+
+        // 날짜 포맷팅 함수
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '';
+            
+            const date = new Date(dateTimeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
 
         // HTML 이스케이프 처리

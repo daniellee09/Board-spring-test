@@ -135,6 +135,14 @@ table tr:hover {
     padding: 40px;
 }
 
+/* 날짜 셀 스타일 */
+.date-cell {
+    color: #6c757d;
+    font-size: 13px;
+    white-space: nowrap;
+    min-width: 120px;
+}
+
 /* 페이지네이션 */
 .pagination {
     display: flex;
@@ -161,9 +169,26 @@ table tr:hover {
 }
 
 .board-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
     color: #6c757d;
     font-size: 14px;
+}
+
+.board-dates {
+    display: flex;
+    gap: 15px;
+}
+
+.created-date, .updated-date {
+    font-size: 13px;
+}
+
+.updated-date {
+    color: #28a745;
+    font-weight: 500;
 }
 
 .board-title {
@@ -297,6 +322,22 @@ table tr:hover {
     
     .content-preview {
         display: none;
+    }
+    
+    .date-cell {
+        min-width: 80px;
+        font-size: 12px;
+    }
+    
+    .board-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .board-dates {
+        flex-direction: column;
+        gap: 5px;
     }
     
     .btn-sm {
