@@ -67,7 +67,10 @@ public class Board {
             isUpdated = true;
         }
 
-
+        // 실제 변경이 있었을 경우에만 수정 시간을 갱신
+        if (isUpdated) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     // 전체 수정

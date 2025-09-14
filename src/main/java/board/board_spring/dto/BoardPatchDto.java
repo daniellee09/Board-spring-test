@@ -7,10 +7,8 @@ import lombok.Setter;
 @Getter @Setter
 public class BoardPatchDto {
 
-    @NotEmpty
     private String title;
 
-    @NotEmpty
     private String content;
 
     // null 및 빈 문자열 체크 메서드
